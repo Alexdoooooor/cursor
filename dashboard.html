@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд — Туризм России 2026</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Design Tokens - Dark Mode (Default) - Slightly lighter */
+            --bg: #1C1B19;
+            --surface: #242321;
+            --surface-hover: #2D2C2A;
+            --text: #F7F6F2;
+            --text-muted: #a1a1aa;
+            --accent: #01696F;
+            --accent-soft: rgba(1, 105, 111, 0.1);
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4), 0 2px 8px -1px rgba(0, 0, 0, 0.2);
+            --font-display: 'Instrument Serif', serif;
+            --font-body: 'Onest', sans-serif;
+            --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            /* Design Tokens - Light Mode - Slightly more subdued */
+            --bg: #F0EFEA;
+            --surface: #F7F6F2;
+            --surface-hover: #EBEAE5;
+            --text: #171614;
+            --text-muted: #71717a;
+            --accent: #01696F;
+            --accent-soft: rgba(1, 105, 111, 0.08);
+            --border: rgba(0, 0, 0, 0.08);
+            --shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 300ms ease, color 300ms ease;
+            word-break: break-word;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            font-weight: 400;
+            line-height: 1.1;
+        }
+
+        .display-medium { font-size: clamp(1.6rem, 5vw, 2.25rem); letter-spacing: -0.01em; }
+        .text-body { font-size: clamp(0.9rem, 1.8vw + 0.4rem, 1.05rem); }
+        .text-small { font-size: clamp(0.8rem, 1.2vw + 0.4rem, 0.9rem); }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: clamp(20px, 5vw, 32px);
+            flex: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--surface-hover);
+        }
+
+        .hide-mobile { display: none; }
+        @media (min-width: 600px) {
+            .hide-mobile { display: inline; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            border: none;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text);
+            background: var(--surface-hover);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+            grid-auto-flow: dense;
+            gap: clamp(20px, 4vw, 32px);
+            margin-top: clamp(24px, 5vw, 40px);
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        .summary-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.2;
+        }
+
+        .summary-card .sub-value {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: clamp(16px, 2vw, 24px);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            min-width: 0;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent-soft);
+        }
+
+        .chart-title {
+            margin-bottom: 16px;
+            color: var(--text);
+            font-size: clamp(1rem, 2vw, 1.1rem);
+            font-weight: 500;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: clamp(250px, 40vh, 350px);
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+            gap: clamp(16px, 3vw, 24px);
+            margin-top: clamp(24px, 4vw, 32px);
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: clamp(20px, 4vw, 32px);
+            text-align: center;
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+        }
+        @media (max-width: 600px) {
+            .hide-mobile { display: none; }
+            header { position: static; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="./index.html" class="btn btn-ghost" style="padding: 8px;">
+                <i data-lucide="arrow-left" size="18"></i>
+            </a>
+            <h1 class="display-medium" style="margin: 0;" data-i18n="dashboard_title">Общие результаты</h1>
+        </div>
+        <div class="header-actions">
+            <div id="headerStats" style="background: var(--accent-soft); color: var(--accent); padding: 4px 12px; border-radius: 16px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="users" size="14"></i>
+                <span data-i18n="dashboard_participants">Участников</span>: <span id="totalResponsesHeader">0</span>
+            </div>
+            <a href="./index.html#admin" class="btn btn-ghost" title="Вход для администратора">
+                <i data-lucide="log-in" size="18"></i> <span class="hide-mobile" data-i18n="login">Войти</span>
+            </a>
+            <button id="themeToggle" class="theme-toggle" aria-label="Переключить тему">
+                <i data-lucide="moon" id="themeIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <script src="i18n.js"></script>
+
+    <main class="container">
+        <div id="filters" style="background: var(--surface); padding: 16px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px; max-width: 100%;">
+                <label for="roleFilter" style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="dashboard_role">Роль</label>
+                <select id="roleFilter" style="background: var(--bg); color: var(--text); padding: 8px; border-radius: 8px; border: 1px solid var(--border); width: 100%; max-width: 100%; text-overflow: ellipsis;">
+                    <option value="all" data-i18n="dashboard_all_roles">Все роли</option>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px; max-width: 100%;">
+                <label for="regionFilter" style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="dashboard_region">Регион</label>
+                <select id="regionFilter" style="background: var(--bg); color: var(--text); padding: 8px; border-radius: 8px; border: 1px solid var(--border); width: 100%; max-width: 100%; text-overflow: ellipsis;">
+                    <option value="all" data-i18n="dashboard_all_regions">Все регионы</option>
+                </select>
+            </div>
+        </div>
+
+        <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 24px;" data-i18n="dashboard_intro">
+            Здесь представлены агрегированные и анонимные результаты опроса «Туризм России 2026». Данные обновляются в реальном времени с каждым новым участником.
+        </p>
+
+        <div id="summarySection" class="summary-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 24px; margin-bottom: 32px;">
+            <!-- Summary cards will be injected here -->
+        </div>
+
+        <div id="summaryCharts" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <div class="chart-card" id="sentimentChartCard" style="grid-column: span 1;">
+                <div class="chart-title" data-i18n="dashboard_sentiment">Общий климат отрасли 2026</div>
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card" id="rolesChartCard" style="grid-column: span 1;">
+                <div class="chart-title" data-i18n="dashboard_roles">Состав участников</div>
+                <div class="chart-container">
+                    <canvas id="rolesChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card" id="digitalChartCard" style="grid-column: span 1;">
+                <div class="chart-title" data-i18n="dashboard_digital">Цифровые инструменты</div>
+                <div class="chart-container">
+                    <canvas id="digitalChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card" id="bookingChartCard" style="grid-column: span 1;">
+                <div class="chart-title" data-i18n="dashboard_booking">Каналы бронирования</div>
+                <div class="chart-container">
+                    <canvas id="bookingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid" id="chartsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 24px;">
+            <!-- Charts will be injected here -->
+        </div>
+    </main>
+
+    <script>
+        // Theme Management
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'moon' : 'sun');
+            lucide.createIcons();
+            
+            // Update charts theme
+            Chart.defaults.color = newTheme === 'dark' ? '#a1a1aa' : '#71717a';
+            Chart.defaults.borderColor = newTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+            renderCharts(); // Re-render to apply theme
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        document.getElementById('roleFilter').addEventListener('change', renderCharts);
+        document.getElementById('regionFilter').addEventListener('change', renderCharts);
+        lucide.createIcons();
+
+        // Chart.js Defaults
+        Chart.defaults.color = '#a1a1aa';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+        Chart.defaults.font.family = "'Onest', sans-serif";
+
+        // Questions Data (Simplified for charts)
+        const questionsData = [
+            { id: 1, text: "Ваша роль в туристической отрасли", type: "bar" },
+            { id: 2, text: "С какими направлениями вы работаете преимущественно?", type: "doughnut" },
+            { id: 3, text: "Ваш основной регион / география работы", type: "pie" },
+            { id: 4, text: "Замечаете ли вы рост интереса к России на фоне нестабильности на Ближнем Востоке?", type: "doughnut" },
+            { id: 5, text: "Туристы из каких регионов проявляют наибольший интерес к въезду в Россию?", type: "bar" },
+            { id: 6, text: "Какие российские направления чаще всего запрашивают иностранные туристы?", type: "pie" },
+            { id: 7, text: "Что является главным барьером для роста въездного туризма в Россию?", type: "bar" },
+            { id: 8, text: "Каков типичный возраст активного внутреннего туриста в 2025–2026 году?", type: "doughnut" },
+            { id: 9, text: "Какой стиль путешествий внутри страны преобладает сейчас?", type: "pie" },
+            { id: 10, text: "Какой формат внутреннего туризма растёт быстрее всего?", type: "doughnut" },
+            { id: 11, text: "Как изменился средний чек внутреннего туриста за последний год?", type: "bar" },
+            { id: 12, text: "Какие регионы России покажут наибольший туристический рост в 2026 году?", type: "pie" },
+            { id: 13, text: "Каков тренд выездного туризма из России в 2026 году?", type: "bar" },
+            { id: 14, text: "Какие зарубежные направления наиболее популярны у российских туристов сейчас?", type: "doughnut" },
+            { id: 15, text: "Как изменилось поведение российского выездного туриста за последние 2 года?", type: "pie" },
+            { id: 16, text: "Какой цифровой инструмент реально влияет на вашу работу прямо сейчас?", type: "doughnut" },
+            { id: 17, text: "Как туристы чаще всего находят и бронируют поездки по России?", type: "bar" },
+            { id: 18, text: "Как вы оцениваете общий туристический климат в России на 2026 год?", type: "pie" },
+            { id: 19, text: "Какое главное препятствие тормозит развитие туризма в России в 2026 году?", type: "bar" }
+        ];
+
+        // Question Options Mapping (To map option IDs to text)
+        const optionsMap = {
+            1: { "A": "Руководитель / владелец туроператора", "B": "Руководитель / владелец турагентства", "C": "Отельер / управляющий средством размещения", "D": "Эксперт, аналитик или консультант рынка", "E": "Представитель региональной / федеральной структуры в туризме", "Other": "Другое" },
+            2: { "A": "Только внутренний туризм", "B": "Только выездной туризм", "C": "Только въездной туризм (иностранцы в Россию)", "D": "Внутренний + выездной", "E": "Все направления одновременно", "Other": "Другое" },
+            3: { "A": "Москва и Московская область", "B": "Санкт-Петербург и Северо-Запад", "C": "Краснодарский край / Черноморское побережье", "D": "Другой российский регион", "E": "Работаю на нескольких регионах / федеральный уровень", "Other": "Другое" },
+            4: { "A": "Да — заметный рост запросов и реальных бронирований", "B": "Интерес есть, но до реального потока туристов далеко", "C": "Скорее нет — ситуация на Ближнем Востоке не влияет на Россию", "D": "Россия пока не воспринимается как альтернативное направление", "E": "Затрудняюсь ответить / не отслеживаю въездной туризм", "Other": "Другое" },
+            5: { "A": "Страны Ближнего Востока (ОАЭ, Саудовская Аравия, Иран, Египет)", "B": "Страны СНГ (Казахстан, Узбекистан, Беларусь, Армения и др.)", "C": "Китай, Индия, страны Юго-Восточной Азии", "D": "Страны Африки и Латинской Америки", "E": "Интереса со стороны иностранных туристов практически нет", "Other": "Другое" },
+            6: { "A": "Москва и Санкт-Петербург (классический маршрут)", "B": "Краснодарский край / Черноморское побережье", "C": "Сибирь, Байкал, Дальний Восток", "D": "Казань, Екатеринбург, Золотое кольцо", "E": "Иностранцы пока не запрашивают конкретные направления", "Other": "Другое" },
+            7: { "A": "Визовые ограничения и сложность оформления", "B": "Сложности с международными платежами и картами", "C": "Отсутствие прямых рейсов из ключевых стран", "D": "Негативный медиаобраз России за рубежом", "E": "Слабая инфраструктура и языковой барьер для иностранцев", "Other": "Другое" },
+            8: { "A": "18–25 лет (молодёжь, студенты)", "B": "25–35 лет (молодые профессионалы и пары)", "C": "35–50 лет (семьи с детьми, средний класс)", "D": "50+ лет (зрелые путешественники, пенсионеры)", "E": "Все возрасты в равной степени", "Other": "Другое" },
+            9: { "A": "Самостоятельные поездки без турагентства", "B": "Организованные туры и пакетные предложения", "C": "Комбинированные поездки (частично самостоятельно, частично через агента)", "D": "Корпоративные и деловые поездки (MICE)", "E": "Групповые туры для узких аудиторий (молодёжь, seniors, тематические)", "Other": "Другое" },
+            10: { "A": "Экотуризм, глэмпинг и природный отдых", "B": "Гастрономический и культурный туризм", "C": "Активный туризм (треккинг, горы, сплавы)", "D": "Велнес и оздоровительные курорты", "E": "Короткие городские поездки (уик-энд в другом городе)", "Other": "Другое" },
+            11: { "A": "Вырос более чем на 20%", "B": "Вырос незначительно — в пределах 10–20%", "C": "Остался примерно на прежнем уровне", "D": "Снизился — туристы стали экономить", "E": "Затрудняюсь оценить", "Other": "Другое" },
+            12: { "A": "Краснодарский край и Крым", "B": "Санкт-Петербург и Ленинградская область", "C": "Алтай, Байкал, Сибирь", "D": "Татарстан, Поволжье, Урал", "E": "Дальний Восток и Арктические маршруты", "Other": "Другое" },
+            13: { "A": "Активный рост — россияне едут за рубеж больше, чем раньше", "B": "Незначительный рост", "C": "Стагнация — уровень примерно как в 2025 году", "D": "Снижение — больше переориентации на внутренний туризм", "E": "Затрудняюсь оценить", "Other": "Другое" },
+            14: { "A": "Турция, ОАЭ, Египет", "B": "Таиланд, Вьетнам, Индонезия, Индия", "C": "Страны СНГ (Казахстан, Узбекистан, Беларусь, Армения)", "D": "Китай, Куба, ЮАР, Латинская Америка", "E": "Европейские направления (через третьи страны)", "Other": "Другое" },
+            15: { "A": "Больше самостоятельных поездок, меньше организованных туров", "B": "Переориентация на «дружественные» страны и СНГ", "C": "Рост спроса на длительные поездки (2 недели и больше)", "D": "Снижение среднего бюджета из-за курса и логистики", "E": "Аудитория сократилась, но оставшиеся тратят значительно больше", "Other": "Другое" },
+            16: { "A": "ИИ-ассистенты и чат-боты для общения с клиентами", "B": "Онлайн-агрегаторы и системы бронирования", "C": "Системы динамического ценообразования", "D": "Аналитические платформы и BI-инструменты", "E": "Цифровые инструменты пока слабо влияют на мою работу", "Other": "Другое" },
+            17: { "A": "Через онлайн-агрегаторы (Островок, Суточно, Яндекс Путешествия)", "B": "Напрямую на сайтах отелей и операторов", "C": "Через турагентов лично или по рекомендации", "D": "Через социальные сети и Telegram-каналы", "E": "Комбинируют несколько каналов одновременно", "Other": "Другое" },
+            18: { "A": "😊 Очень благоприятный — отрасль активно растёт", "B": "🙂 Умеренно позитивный — рост есть, но с ограничениями", "C": "😐 Нейтральный — ситуация стабильная, без резких изменений", "D": "😟 Сложный — много препятствий для развития", "E": "😰 Критический — отрасль находится в кризисе", "Other": "Другое" },
+            19: { "A": "Высокие цены на перелёты и транспортную доступность регионов", "B": "Недостаточное качество сервиса и инфраструктуры", "C": "Нехватка квалифицированных кадров в отрасли", "D": "Слабая цифровизация и неудобные сервисы для туристов", "E": "Недостаточная государственная поддержка и субсидирование", "Other": "Другое" }
+        };
+
+        let chartInstances = {};
+
+        function loadData() {
+            const responses = JSON.parse(localStorage.getItem('survey_responses_2026') || '[]');
+            
+            // Update Stats in Header
+            document.getElementById('totalResponsesHeader').textContent = responses.length;
+            
+            return responses;
+        }
+
+        function populateFilters() {
+            const roleFilter = document.getElementById('roleFilter');
+            const regionFilter = document.getElementById('regionFilter');
+
+            Object.entries(optionsMap[1]).forEach(([key, value]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value;
+                roleFilter.appendChild(option);
+            });
+
+            Object.entries(optionsMap[3]).forEach(([key, value]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value;
+                regionFilter.appendChild(option);
+            });
+        }
+
+        populateFilters();
+
+        function renderCharts() {
+            const allResponses = loadData();
+            const roleFilter = document.getElementById('roleFilter').value;
+            const regionFilter = document.getElementById('regionFilter').value;
+
+            const responses = allResponses.filter(r => {
+                const roleMatch = roleFilter === 'all' || (r.answers[1] && r.answers[1].options.includes(roleFilter));
+                const regionMatch = regionFilter === 'all' || (r.answers[3] && r.answers[3].options.includes(regionFilter));
+                return roleMatch && regionMatch;
+            });
+
+            const container = document.getElementById('chartsContainer');
+            const summaryContainer = document.getElementById('summarySection');
+            
+            // Update Stats in Header
+            document.getElementById('totalResponsesHeader').textContent = responses.length;
+            
+            // Clear existing charts if re-rendering for theme change
+            if (Object.keys(chartInstances).length > 0) {
+                Object.values(chartInstances).forEach(chart => chart.destroy());
+                chartInstances = {};
+                container.innerHTML = '';
+                summaryContainer.innerHTML = '';
+            }
+
+            if (responses.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 48px;">Нет данных для выбранных фильтров.</p>';
+                summaryContainer.style.display = 'none';
+                document.getElementById('summaryCharts').style.display = 'none';
+                return;
+            }
+
+            summaryContainer.style.display = 'grid';
+            document.getElementById('summaryCharts').style.display = 'grid';
+
+            // Calculate Summary Data
+            const calculateTopOption = (questionId) => {
+                const counts = {};
+                responses.forEach(r => {
+                    if (r.answers[questionId] && r.answers[questionId].options) {
+                        r.answers[questionId].options.forEach(opt => {
+                            counts[opt] = (counts[opt] || 0) + 1;
+                        });
+                    }
+                });
+                const topKey = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, null);
+                return topKey ? { text: optionsMap[questionId][topKey], count: counts[topKey] } : null;
+            };
+
+            const topBarrier = calculateTopOption(19);
+            const topRegion = calculateTopOption(12);
+            const topTrend = calculateTopOption(10);
+
+            const createSummaryCard = (label, value, subValue) => {
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.innerHTML = `
+                    <div class="label">${label}</div>
+                    <div class="value">${value}</div>
+                    <div class="sub-value">${subValue}</div>
+                `;
+                return card;
+            };
+
+            if (topBarrier) summaryContainer.appendChild(createSummaryCard('Главный барьер', topBarrier.text, `${Math.round((topBarrier.count / responses.length) * 100)}% голосов`));
+            if (topRegion) summaryContainer.appendChild(createSummaryCard('Регион-лидер 2026', topRegion.text, `${Math.round((topRegion.count / responses.length) * 100)}% голосов`));
+            if (topTrend) summaryContainer.appendChild(createSummaryCard('Главный тренд', topTrend.text, `${Math.round((topTrend.count / responses.length) * 100)}% голосов`));
+
+            const colors = [
+                '#01696F', // accent
+                '#F27D26', // orange
+                '#34A853', // green
+                '#EA4335', // red
+                '#FBBC05', // yellow
+                '#8E9299'  // gray
+            ];
+
+            // Helper to get chart data
+            const getChartData = (qId) => {
+                const counts = {};
+                Object.keys(optionsMap[qId]).forEach(k => counts[k] = 0);
+                responses.forEach(r => {
+                    if (r.answers[qId] && r.answers[qId].options) {
+                        r.answers[qId].options.forEach(opt => {
+                            if (counts[opt] !== undefined) counts[opt]++;
+                        });
+                    }
+                });
+                const labels = [];
+                const data = [];
+                const bgColors = [];
+                let colorIndex = 0;
+                Object.keys(counts).forEach(key => {
+                    if (counts[key] > 0) {
+                        labels.push(optionsMap[qId][key]);
+                        data.push(counts[key]);
+                        bgColors.push(colors[colorIndex % colors.length]);
+                        colorIndex++;
+                    }
+                });
+                return { labels, data, bgColors };
+            };
+
+            // Render Summary Charts
+            const summaryChartsConfig = [
+                { id: 18, canvasId: 'sentimentChart', type: 'pie' },
+                { id: 1, canvasId: 'rolesChart', type: 'bar' },
+                { id: 16, canvasId: 'digitalChart', type: 'doughnut' },
+                { id: 17, canvasId: 'bookingChart', type: 'bar' }
+            ];
+
+            summaryChartsConfig.forEach(config => {
+                const { labels, data, bgColors } = getChartData(config.id);
+                if (data.length === 0) {
+                    document.getElementById(config.canvasId + 'Card').style.display = 'none';
+                    return;
+                }
+                document.getElementById(config.canvasId + 'Card').style.display = 'flex';
+                const ctx = document.getElementById(config.canvasId).getContext('2d');
+                chartInstances[config.canvasId] = new Chart(ctx, {
+                    type: config.type,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: config.type === 'bar' ? colors[0] : bgColors,
+                            borderWidth: 1,
+                            borderRadius: config.type === 'bar' ? 4 : 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: config.type !== 'bar',
+                                position: window.innerWidth < 600 ? 'bottom' : 'right',
+                                labels: { boxWidth: 12, font: { size: 11 } }
+                            }
+                        },
+                        scales: config.type === 'bar' ? {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                            x: { display: false }
+                        } : undefined
+                    }
+                });
+            });
+
+            // Render Detailed Charts
+            const summaryIds = summaryChartsConfig.map(c => c.id);
+            questionsData.filter(q => !summaryIds.includes(q.id)).forEach(qData => {
+                const { labels, data, bgColors } = getChartData(qData.id);
+                if (data.length === 0) return;
+
+                // Create DOM elements
+                const card = document.createElement('div');
+                card.className = 'chart-card';
+                const title = document.createElement('div');
+                title.className = 'chart-title';
+                title.textContent = qData.text;
+                const chartWrapper = document.createElement('div');
+                chartWrapper.className = 'chart-container';
+                const canvas = document.createElement('canvas');
+                chartWrapper.appendChild(canvas);
+                card.appendChild(title);
+                card.appendChild(chartWrapper);
+                container.appendChild(card);
+
+                const ctx = canvas.getContext('2d');
+                chartInstances[qData.id] = new Chart(ctx, {
+                    type: qData.type,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: qData.type === 'bar' ? colors[0] : bgColors,
+                            borderWidth: 1,
+                            borderRadius: qData.type === 'bar' ? 4 : 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: qData.type !== 'bar',
+                                position: window.innerWidth < 600 ? 'bottom' : 'right',
+                                labels: { boxWidth: 12, font: { size: 11 } }
+                            }
+                        },
+                        scales: qData.type === 'bar' ? {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                            x: { display: false }
+                        } : undefined
+                    }
+                });
+            });
+        }
+
+        // Initial render
+        renderCharts();
+
+        // Handle resize for legend position
+        let lastWidth = window.innerWidth;
+        window.addEventListener('resize', () => {
+            const currentWidth = window.innerWidth;
+            if ((lastWidth < 600 && currentWidth >= 600) || (lastWidth >= 600 && currentWidth < 600)) {
+                renderCharts();
+            }
+            lastWidth = currentWidth;
+        });
+    </script>
+</body>
+</html>
