@@ -22,6 +22,7 @@
     "inngest": "^3.52.7",
     "lucide-react": "^1.7.0",
     "mongodb": "^6.16.0",
+    "mongodb-memory-server": "^11.0.1",
     "mongoose": "^9.3.3",
     "next": "^16.2.2",
     "next-auth": "^4.24.13",

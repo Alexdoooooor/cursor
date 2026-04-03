@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import type { Route } from "next";
 
 import { cn } from "@/lib/utils/cn";
 
@@ -12,7 +13,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  href?: string;
+  href?: Route;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {

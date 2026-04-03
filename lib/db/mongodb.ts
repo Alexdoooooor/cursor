@@ -3,11 +3,6 @@ import mongoose from "mongoose";
 const MONGODB_URI =
   process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/cinecraft-control-room";
 
-const isBuildTime =
-  process.env.SKIP_DB_CONNECT === "true" ||
-  process.env.NODE_ENV === "test" ||
-  process.env.NODE_ENV === "production";
-
 type MongooseCache = {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -26,8 +21,16 @@ if (!global.mongooseCache) {
   global.mongooseCache = cached;
 }
 
+export function isDatabaseEnabled(): boolean {
+  return !(
+    process.env.SKIP_DB_CONNECT === "true" ||
+    process.env.NODE_ENV === "test" ||
+    process.env.NODE_ENV === "production"
+  );
+}
+
 export async function connectToDatabase() {
-  if (isBuildTime) {
+  if (!isDatabaseEnabled()) {
     return mongoose;
   }
 

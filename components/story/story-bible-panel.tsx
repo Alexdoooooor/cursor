@@ -16,11 +16,39 @@ type StoryBiblePanelProps = {
 export function StoryBiblePanel({ project }: StoryBiblePanelProps) {
   const [logline, setLogline] = useState(project.synopsis);
   const [synopsis, setSynopsis] = useState(project.synopsis);
+  const [mood, setMood] = useState(project.storyBible.mood);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const totalDuration = useMemo(
     () => project.scenes.reduce((total, scene) => total + scene.plannedDurationSec, 0),
     [project.scenes],
   );
+
+  async function saveStoryBible() {
+    setStatus("saving");
+
+    try {
+      const response = await fetch(`/api/projects/${project.slug}/story`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          logline,
+          synopsis,
+          mood,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Не удалось сохранить story bible.");
+      }
+
+      setStatus("saved");
+    } catch {
+      setStatus("error");
+    }
+  }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
@@ -45,6 +73,32 @@ export function StoryBiblePanel({ project }: StoryBiblePanelProps) {
               value={synopsis}
               onChange={(event) => setSynopsis(event.target.value)}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="mood">Тональность / mood</Label>
+            <Input id="mood" value={mood} onChange={(event) => setMood(event.target.value)} />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-slate-400">
+              Story bible сохраняется через API и готова к Mongo-backed persistence.
+            </p>
+            <div className="flex items-center gap-3">
+              {status === "saved" ? (
+                <span className="text-sm text-emerald-300">Сохранено</span>
+              ) : null}
+              {status === "error" ? (
+                <span className="text-sm text-rose-300">Ошибка сохранения</span>
+              ) : null}
+              <button
+                type="button"
+                onClick={saveStoryBible}
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-cyan-400 px-4 text-sm font-medium text-slate-950 transition hover:bg-cyan-300"
+              >
+                {status === "saving" ? "Сохраняем…" : "Сохранить"}
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-4">

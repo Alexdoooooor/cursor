@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { Route } from "next";
 import { usePathname } from "next/navigation";
+import type { ComponentType } from "react";
 import {
   Clapperboard,
   Film,
@@ -17,7 +17,7 @@ import {
 
 import { cn } from "@/lib/utils/cn";
 
-const links: Array<{ href: Route; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+const links: Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }> = [
   { href: "/projects", label: "Проекты", icon: FolderKanban },
   { href: "/projects/polunochnyy-ekspress", label: "Обзор проекта", icon: Clapperboard },
   { href: "/projects/polunochnyy-ekspress/story", label: "Story Bible", icon: LibraryBig },
@@ -52,7 +52,7 @@ export function AppSidebar() {
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={link.href as never}
               className={cn(
                 "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
                 active

@@ -5,9 +5,16 @@ import {
   findProjectBySlug,
 } from "@/lib/data/demo";
 import { connectToDatabase } from "@/lib/db/mongodb";
+import {
+  createProjectDocument,
+  listProjectDocuments,
+  updateProjectAssetsDocument,
+  updateProjectCharactersDocument,
+  updateProjectStoryDocument,
+} from "@/lib/repositories/projects-repository";
 import { createMockGeneration } from "@/lib/providers/mock-provider";
 import { createProjectSchema, type CreateProjectInput } from "@/lib/validations/project";
-import type { GenerationJob, Project } from "@/types/domain";
+import type { AssetRecord, Character, GenerationJob, Project, StoryBible } from "@/types/domain";
 
 const projectStore = new Map<string, Project>();
 const generationJobStore = new Map<string, GenerationJob>();
@@ -28,6 +35,12 @@ function ensureSeeded(): void {
 export async function listProjects(): Promise<Project[]> {
   await connectToDatabase();
   ensureSeeded();
+  const databaseProjects = await listProjectDocuments();
+
+  for (const project of databaseProjects) {
+    projectStore.set(project.id, project);
+  }
+
   return Array.from(projectStore.values());
 }
 
@@ -64,6 +77,8 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
 
   const parsed = createProjectSchema.parse(input);
   const project = buildProjectFromInput(parsed);
+
+  await createProjectDocument(project);
   projectStore.set(project.id, project);
   return project;
 }
@@ -111,4 +126,68 @@ export async function createGenerationJob(
 export function getGenerationJobById(jobId: string): GenerationJob | null {
   ensureSeeded();
   return generationJobStore.get(jobId) ?? null;
+}
+
+export async function updateProjectStoryBible(
+  projectId: string,
+  story: Pick<StoryBible, "logline" | "synopsis" | "mood">,
+): Promise<Project | null> {
+  await connectToDatabase();
+  ensureSeeded();
+
+  const project = await getProjectByIdOrSlug(projectId);
+  if (!project) {
+    return null;
+  }
+
+  project.logline = story.logline;
+  project.synopsis = story.synopsis;
+  project.storyBible = {
+    ...project.storyBible,
+    ...story,
+  };
+
+  await updateProjectStoryDocument(project.id, project.storyBible);
+  projectStore.set(project.id, project);
+  return project;
+}
+
+export async function updateProjectCharacters(
+  projectId: string,
+  characters: Character[],
+): Promise<Project | null> {
+  await connectToDatabase();
+  ensureSeeded();
+
+  const project = await getProjectByIdOrSlug(projectId);
+  if (!project) {
+    return null;
+  }
+
+  project.characters = characters;
+  project.stats.characters = characters.length;
+
+  await updateProjectCharactersDocument(project.id, characters);
+  projectStore.set(project.id, project);
+  return project;
+}
+
+export async function updateProjectAssets(
+  projectId: string,
+  assets: AssetRecord[],
+): Promise<Project | null> {
+  await connectToDatabase();
+  ensureSeeded();
+
+  const project = await getProjectByIdOrSlug(projectId);
+  if (!project) {
+    return null;
+  }
+
+  project.assets = assets;
+  project.stats.assets = assets.length;
+
+  await updateProjectAssetsDocument(project.id, assets);
+  projectStore.set(project.id, project);
+  return project;
 }

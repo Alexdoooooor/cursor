@@ -5,6 +5,9 @@ export default defineConfig({
     environment: "node",
     globals: true,
     setupFiles: [],
+    alias: {
+      "server-only": "/workspace/tests/server-only-mock.ts",
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

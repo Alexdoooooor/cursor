@@ -56,6 +56,18 @@ export interface Character {
   voiceProfile: string;
 }
 
+export interface CharacterInput {
+  name: string;
+  role: string;
+  bio: string;
+  visualIdentity: string;
+  costumeSets: string[];
+  motionTraits: string[];
+  continuityLocks: string[];
+  tags: string[];
+  voiceProfile: string;
+}
+
 export interface LocationPreset {
   id: string;
   name: string;
@@ -89,6 +101,15 @@ export interface AssetRecord {
   tags: string[];
   usedIn: string[];
   checksum: string;
+}
+
+export interface AssetInput {
+  name: string;
+  type: AssetRecord["type"];
+  origin: string;
+  canonical: boolean;
+  tags: string[];
+  usedIn: string[];
 }
 
 export interface PromptBlock {
@@ -229,6 +250,12 @@ export interface StoryBible {
   mood: string;
   acts: StoryAct[];
   scenes: Scene[];
+}
+
+export interface StoryBibleUpdate {
+  logline: string;
+  synopsis: string;
+  mood: string;
 }
 
 export interface MetricItem {
