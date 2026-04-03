@@ -20,6 +20,15 @@ npm run dev
 
 Откройте `http://localhost:3000`.
 
+### Демо-вход
+
+Для локального режима уже доступен credentials-login:
+
+- логин: `director@cinecraft.local`
+- пароль: `demo12345`
+
+После входа открывается защищённый studio shell.
+
 ## Переменные окружения
 
 Скопируйте `.env.example` в `.env.local` и заполните значения:
@@ -32,7 +41,7 @@ cp .env.example .env.local
 
 - `MONGODB_URI` — строка подключения к MongoDB Atlas
 - `MONGODB_DB_NAME` — имя базы
-- `NEXTAUTH_SECRET` — секрет для Auth.js
+- `AUTH_SECRET` — секрет для auth/session cookie
 - `NEXTAUTH_URL` — базовый URL приложения
 - `INNGEST_EVENT_KEY` — ключ событий Inngest
 - `INNGEST_SIGNING_KEY` — signing key Inngest
@@ -55,6 +64,7 @@ cp .env.example .env.local
 - export center
 - usage dashboard
 - settings экран для провайдеров
+- auth skeleton с login/logout и защитой studio shell
 
 ## Архитектурная заметка
 

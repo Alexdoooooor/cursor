@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, Clapperboard, Film, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSessionUser } from "@/lib/auth/session";
 
 const features = [
   {
@@ -25,7 +27,13 @@ const features = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getSessionUser();
+
+  if (user) {
+    redirect("/projects");
+  }
+
   return (
     <main className="relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(110,211,255,0.16),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(254,179,102,0.18),_transparent_32%)]" />

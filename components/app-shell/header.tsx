@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, ChevronDown, Search, Sparkles } from "lucide-react";
+import type { Route } from "next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,9 @@ export function AppHeader({ currentProject }: AppHeaderProps) {
           <Button variant="secondary" className="justify-between gap-3">
             Русский интерфейс
             <ChevronDown className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" href={"/logout" as Route}>
+            Выйти
           </Button>
         </div>
       </div>
