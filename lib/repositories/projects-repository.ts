@@ -1,7 +1,11 @@
 import { Types } from "mongoose";
 
 import type { AssetRecord, Character, Project, StoryBible } from "@/types/domain";
-import { connectToDatabase, isDatabaseEnabled } from "@/lib/db/mongodb";
+import {
+  connectToDatabase,
+  hasActiveDatabaseConnection,
+  isDatabaseEnabled,
+} from "@/lib/db/mongodb";
 import { ProjectModel } from "@/lib/db/models";
 
 function serializeProject(project: Project): Project {
@@ -19,9 +23,23 @@ export async function listProjectDocuments(): Promise<Project[]> {
     return [];
   }
 
-  await connectToDatabase();
-  const projects = await ProjectModel.find({}, null, { lean: true, sort: { createdAt: -1 } });
-  return projects.map((project) => stripMongoId(project as Project & { _id?: Types.ObjectId }));
+  try {
+    await connectToDatabase();
+    if (!hasActiveDatabaseConnection()) {
+      return [];
+    }
+
+    const projects = await ProjectModel.find({}, null, {
+      lean: true,
+      sort: { createdAt: -1 },
+    });
+
+    return projects.map((project) =>
+      stripMongoId(project as Project & { _id?: Types.ObjectId }),
+    );
+  } catch {
+    return [];
+  }
 }
 
 export async function findProjectDocument(identifier: string): Promise<Project | null> {
@@ -29,14 +47,22 @@ export async function findProjectDocument(identifier: string): Promise<Project |
     return null;
   }
 
-  await connectToDatabase();
-  const project =
-    (await ProjectModel.findOne({ id: identifier }, null, { lean: true })) ??
-    (await ProjectModel.findOne({ slug: identifier }, null, { lean: true }));
+  try {
+    await connectToDatabase();
+    if (!hasActiveDatabaseConnection()) {
+      return null;
+    }
 
-  return project
-    ? stripMongoId(project as Project & { _id?: Types.ObjectId })
-    : null;
+    const project =
+      (await ProjectModel.findOne({ id: identifier }, null, { lean: true })) ??
+      (await ProjectModel.findOne({ slug: identifier }, null, { lean: true }));
+
+    return project
+      ? stripMongoId(project as Project & { _id?: Types.ObjectId })
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function createProjectDocument(project: Project): Promise<Project> {
@@ -44,12 +70,20 @@ export async function createProjectDocument(project: Project): Promise<Project> 
     return project;
   }
 
-  await connectToDatabase();
-  await ProjectModel.findOneAndUpdate(
-    { id: project.id },
-    { ...project, updatedAtIso: new Date().toISOString() },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
-  );
+  try {
+    await connectToDatabase();
+    if (!hasActiveDatabaseConnection()) {
+      return project;
+    }
+
+    await ProjectModel.findOneAndUpdate(
+      { id: project.id },
+      { ...project, updatedAtIso: new Date().toISOString() },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+  } catch {
+    return project;
+  }
 
   return project;
 }
@@ -62,19 +96,27 @@ export async function updateProjectStoryDocument(
     return;
   }
 
-  await connectToDatabase();
-  await ProjectModel.findOneAndUpdate(
-    { id: projectId },
-    {
-      $set: {
-        logline: storyBible.logline,
-        synopsis: storyBible.synopsis,
-        storyBible,
-        latestActivity: "только что",
-        updatedAtIso: new Date().toISOString(),
+  try {
+    await connectToDatabase();
+    if (!hasActiveDatabaseConnection()) {
+      return;
+    }
+
+    await ProjectModel.findOneAndUpdate(
+      { id: projectId },
+      {
+        $set: {
+          logline: storyBible.logline,
+          synopsis: storyBible.synopsis,
+          storyBible,
+          latestActivity: "только что",
+          updatedAtIso: new Date().toISOString(),
+        },
       },
-    },
-  );
+    );
+  } catch {
+    return;
+  }
 }
 
 export async function updateProjectCharactersDocument(
@@ -85,18 +127,26 @@ export async function updateProjectCharactersDocument(
     return;
   }
 
-  await connectToDatabase();
-  await ProjectModel.findOneAndUpdate(
-    { id: projectId },
-    {
-      $set: {
-        characters,
-        "stats.characters": characters.length,
-        latestActivity: "только что",
-        updatedAtIso: new Date().toISOString(),
+  try {
+    await connectToDatabase();
+    if (!hasActiveDatabaseConnection()) {
+      return;
+    }
+
+    await ProjectModel.findOneAndUpdate(
+      { id: projectId },
+      {
+        $set: {
+          characters,
+          "stats.characters": characters.length,
+          latestActivity: "только что",
+          updatedAtIso: new Date().toISOString(),
+        },
       },
-    },
-  );
+    );
+  } catch {
+    return;
+  }
 }
 
 export async function updateProjectAssetsDocument(
@@ -107,18 +157,26 @@ export async function updateProjectAssetsDocument(
     return;
   }
 
-  await connectToDatabase();
-  await ProjectModel.findOneAndUpdate(
-    { id: projectId },
-    {
-      $set: {
-        assets,
-        "stats.assets": assets.length,
-        latestActivity: "только что",
-        updatedAtIso: new Date().toISOString(),
+  try {
+    await connectToDatabase();
+    if (!hasActiveDatabaseConnection()) {
+      return;
+    }
+
+    await ProjectModel.findOneAndUpdate(
+      { id: projectId },
+      {
+        $set: {
+          assets,
+          "stats.assets": assets.length,
+          latestActivity: "только что",
+          updatedAtIso: new Date().toISOString(),
+        },
       },
-    },
-  );
+    );
+  } catch {
+    return;
+  }
 }
 
 export async function replaceProjectDocument(project: Project): Promise<Project> {

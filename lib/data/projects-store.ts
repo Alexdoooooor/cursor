@@ -4,9 +4,10 @@ import {
   findProjectById,
   findProjectBySlug,
 } from "@/lib/data/demo";
-import { connectToDatabase } from "@/lib/db/mongodb";
+import { connectToDatabase, isDatabaseEnabled } from "@/lib/db/mongodb";
 import {
   createProjectDocument,
+  findProjectDocument,
   listProjectDocuments,
   updateProjectAssetsDocument,
   updateProjectCharactersDocument,
@@ -35,7 +36,9 @@ function ensureSeeded(): void {
 export async function listProjects(): Promise<Project[]> {
   await connectToDatabase();
   ensureSeeded();
-  const databaseProjects = await listProjectDocuments();
+  const databaseProjects = isDatabaseEnabled()
+    ? await listProjectDocuments()
+    : [];
 
   for (const project of databaseProjects) {
     projectStore.set(project.id, project);
@@ -51,12 +54,29 @@ export async function getProjects(): Promise<Project[]> {
 export async function getProjectById(projectId: string): Promise<Project | null> {
   await connectToDatabase();
   ensureSeeded();
+
+  if (isDatabaseEnabled()) {
+    const databaseProject = await findProjectDocument(projectId);
+    if (databaseProject) {
+      projectStore.set(databaseProject.id, databaseProject);
+      return databaseProject;
+    }
+  }
+
   return projectStore.get(projectId) ?? findProjectById(projectId) ?? null;
 }
 
 export async function getProjectBySlug(projectSlug: string): Promise<Project | null> {
   await connectToDatabase();
   ensureSeeded();
+
+  if (isDatabaseEnabled()) {
+    const databaseProject = await findProjectDocument(projectSlug);
+    if (databaseProject) {
+      projectStore.set(databaseProject.id, databaseProject);
+      return databaseProject;
+    }
+  }
 
   for (const project of projectStore.values()) {
     if (project.slug === projectSlug || project.id === projectSlug) {

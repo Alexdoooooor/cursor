@@ -36,8 +36,8 @@ export default async function HomePage() {
 
   return (
     <main className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(110,211,255,0.16),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(254,179,102,0.18),_transparent_32%)]" />
-      <section className="mx-auto flex min-h-screen max-w-7xl flex-col justify-center gap-14 px-6 py-24 lg:px-10">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(110,211,255,0.16),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(254,179,102,0.18),_transparent_32%)]" />
+      <section className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col justify-center gap-14 px-6 py-24 lg:px-10">
         <div className="max-w-4xl space-y-8">
           <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
             Полностью русскоязычный control room для AI-видеопроизводства

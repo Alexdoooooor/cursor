@@ -29,6 +29,10 @@ export function isDatabaseEnabled(): boolean {
   );
 }
 
+export function hasActiveDatabaseConnection(): boolean {
+  return mongoose.connection.readyState === 1;
+}
+
 export async function connectToDatabase() {
   if (!isDatabaseEnabled()) {
     return mongoose;
@@ -42,7 +46,7 @@ export async function connectToDatabase() {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 1500,
     });
   }
 
